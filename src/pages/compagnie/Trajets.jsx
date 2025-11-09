@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Bus, Search, MapPin } from 'lucide-react'
+import { Bus, Search, MapPin, Plus, Edit2, Trash2, X } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 import { useSession } from '../../contexts/SessionProvider'
 
@@ -9,6 +9,15 @@ export default function CompagnieTrajets() {
   const [compagnieId, setCompagnieId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingTrajet, setEditingTrajet] = useState(null)
+  const [formData, setFormData] = useState({
+    depart: '',
+    arrivee: '',
+    prix: '',
+    gare: '',
+    horaires: [''],
+  })
 
   useEffect(() => {
     loadCompagnieAndTrajets()
@@ -54,6 +63,114 @@ export default function CompagnieTrajets() {
     }
   }
 
+  const openModal = (trajet = null) => {
+    if (trajet) {
+      setEditingTrajet(trajet)
+      setFormData({
+        depart: trajet.depart,
+        arrivee: trajet.arrivee,
+        prix: trajet.prix,
+        gare: trajet.gare || '',
+        horaires: trajet.horaires || [''],
+      })
+    } else {
+      setEditingTrajet(null)
+      setFormData({
+        depart: '',
+        arrivee: '',
+        prix: '',
+        gare: '',
+        horaires: [''],
+      })
+    }
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingTrajet(null)
+    setFormData({
+      depart: '',
+      arrivee: '',
+      prix: '',
+      gare: '',
+      horaires: [''],
+    })
+  }
+
+  const addHoraire = () => {
+    setFormData({ ...formData, horaires: [...formData.horaires, ''] })
+  }
+
+  const removeHoraire = (index) => {
+    const newHoraires = formData.horaires.filter((_, i) => i !== index)
+    setFormData({ ...formData, horaires: newHoraires.length > 0 ? newHoraires : [''] })
+  }
+
+  const updateHoraire = (index, value) => {
+    const newHoraires = [...formData.horaires]
+    newHoraires[index] = value
+    setFormData({ ...formData, horaires: newHoraires })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    try {
+      const horairesFiltres = formData.horaires.filter(h => h.trim() !== '')
+      
+      const trajetData = {
+        depart: formData.depart,
+        arrivee: formData.arrivee,
+        prix: parseFloat(formData.prix),
+        gare: formData.gare || null,
+        horaires: horairesFiltres.length > 0 ? horairesFiltres : null,
+        compagnie_id: compagnieId,
+      }
+
+      if (editingTrajet) {
+        const { error } = await supabase
+          .from('trajets')
+          .update(trajetData)
+          .eq('id', editingTrajet.id)
+        
+        if (error) throw error
+        alert('Trajet modifié avec succès')
+      } else {
+        const { error } = await supabase
+          .from('trajets')
+          .insert([trajetData])
+        
+        if (error) throw error
+        alert('Trajet ajouté avec succès')
+      }
+
+      closeModal()
+      await loadTrajets(compagnieId)
+    } catch (error) {
+      console.error('Error saving trajet:', error)
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+    }
+  }
+
+  const deleteTrajet = async (id) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?')) return
+
+    try {
+      const { error } = await supabase
+        .from('trajets')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
+      alert('Trajet supprimé avec succès')
+      await loadTrajets(compagnieId)
+    } catch (error) {
+      console.error('Error deleting trajet:', error)
+      alert('Erreur lors de la suppression : ' + error.message)
+    }
+  }
+
   const filteredTrajets = trajets.filter(t => {
     const matchesSearch = 
       t.depart?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,13 +205,22 @@ export default function CompagnieTrajets() {
 
   return (
     <div className="page-container">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Trajets de ma compagnie
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {trajets.length} trajet{trajets.length > 1 ? 's' : ''} disponible{trajets.length > 1 ? 's' : ''}
-        </p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Trajets de ma compagnie
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {trajets.length} trajet{trajets.length > 1 ? 's' : ''} disponible{trajets.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        <button
+          onClick={() => openModal()}
+          className="btn-primary flex items-center space-x-2"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Ajouter un trajet</span>
+        </button>
       </div>
 
       {/* Recherche */}
@@ -231,9 +357,158 @@ export default function CompagnieTrajets() {
                     </div>
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="flex space-x-2 pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => openModal(trajet)}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span>Modifier</span>
+                  </button>
+                  <button
+                    onClick={() => deleteTrajet(trajet.id)}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-error text-white rounded-lg hover:bg-error-dark transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Supprimer</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal Formulaire */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {editingTrajet ? 'Modifier le trajet' : 'Ajouter un trajet'}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Ville de départ *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.depart}
+                      onChange={(e) => setFormData({ ...formData, depart: e.target.value })}
+                      className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      placeholder="Ex: Cotonou"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Ville d'arrivée *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.arrivee}
+                      onChange={(e) => setFormData({ ...formData, arrivee: e.target.value })}
+                      className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      placeholder="Ex: Porto-Novo"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Prix (FCFA) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={formData.prix}
+                      onChange={(e) => setFormData({ ...formData, prix: e.target.value })}
+                      className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      placeholder="Ex: 1500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Gare (optionnel)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.gare}
+                      onChange={(e) => setFormData({ ...formData, gare: e.target.value })}
+                      className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      placeholder="Ex: Gare de Jonquet"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Horaires (optionnel)
+                  </label>
+                  {formData.horaires.map((horaire, index) => (
+                    <div key={index} className="flex space-x-2 mb-2">
+                      <input
+                        type="time"
+                        value={horaire}
+                        onChange={(e) => updateHoraire(index, e.target.value)}
+                        className="input-field flex-1 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                      />
+                      {formData.horaires.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeHoraire(index)}
+                          className="px-3 py-2 bg-error text-white rounded-lg hover:bg-error-dark transition-colors"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addHoraire}
+                    className="text-sm text-primary hover:text-primary-dark font-medium"
+                  >
+                    + Ajouter un horaire
+                  </button>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                  >
+                    {editingTrajet ? 'Modifier' : 'Ajouter'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

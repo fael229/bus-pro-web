@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle, XCircle, Clock, Search, Filter } from 'lucide-react'
+import { Calendar, CheckCircle, XCircle, Clock, Search, Filter, CalendarRange } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 import { useSession } from '../../contexts/SessionProvider'
 
@@ -10,6 +10,8 @@ export default function CompagnieReservations() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [dateStart, setDateStart] = useState('')
+  const [dateEnd, setDateEnd] = useState('')
 
   useEffect(() => {
     loadCompagnieAndReservations()
@@ -125,7 +127,23 @@ export default function CompagnieReservations() {
     
     const matchesStatus = statusFilter === 'all' || r.statut === statusFilter
     
-    return matchesSearch && matchesStatus
+    // Filtre de date
+    let matchesDate = true
+    if (dateStart || dateEnd) {
+      const reservationDate = new Date(r.created_at)
+      if (dateStart) {
+        const startDate = new Date(dateStart)
+        startDate.setHours(0, 0, 0, 0)
+        matchesDate = matchesDate && reservationDate >= startDate
+      }
+      if (dateEnd) {
+        const endDate = new Date(dateEnd)
+        endDate.setHours(23, 59, 59, 999)
+        matchesDate = matchesDate && reservationDate <= endDate
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate
   })
 
   if (loading) {
@@ -164,7 +182,7 @@ export default function CompagnieReservations() {
 
       {/* Filtres */}
       <div className="card mb-6">
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
@@ -190,9 +208,31 @@ export default function CompagnieReservations() {
               <option value="expiree">Expirée</option>
             </select>
           </div>
+
+          <div className="relative">
+            <CalendarRange className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="date"
+              value={dateStart}
+              onChange={(e) => setDateStart(e.target.value)}
+              placeholder="Date début"
+              className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+          </div>
+
+          <div className="relative">
+            <CalendarRange className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="date"
+              value={dateEnd}
+              onChange={(e) => setDateEnd(e.target.value)}
+              placeholder="Date fin"
+              className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+          </div>
         </div>
         
-        {(searchTerm || statusFilter !== 'all') && (
+        {(dateStart || dateEnd || searchTerm || statusFilter !== 'all') && (
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {filteredReservations.length} résultat{filteredReservations.length > 1 ? 's' : ''} trouvé{filteredReservations.length > 1 ? 's' : ''}
@@ -201,6 +241,8 @@ export default function CompagnieReservations() {
               onClick={() => {
                 setSearchTerm('')
                 setStatusFilter('all')
+                setDateStart('')
+                setDateEnd('')
               }}
               className="text-sm text-primary hover:text-primary-dark font-medium"
             >

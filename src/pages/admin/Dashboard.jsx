@@ -352,7 +352,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link to="/admin/trajets" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-primary-light rounded-lg">
@@ -396,6 +396,22 @@ export default function AdminDashboard() {
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Voir et modifier
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/admin/users" className="card hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-error-light rounded-lg">
+              <Users className="h-6 w-6 text-error" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white">
+                Gérer les utilisateurs
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Modifier les rôles
               </p>
             </div>
           </div>

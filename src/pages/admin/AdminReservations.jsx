@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle, XCircle, Clock, Search, Filter, CalendarRange } from 'lucide-react'
+import { Calendar, CheckCircle, XCircle, Clock, Search, Filter, CalendarRange, Building2 } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 
 export default function AdminReservations() {
   const [reservations, setReservations] = useState([])
+  const [compagnies, setCompagnies] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [compagnieFilter, setCompagnieFilter] = useState('all')
   const [dateStart, setDateStart] = useState('')
   const [dateEnd, setDateEnd] = useState('')
 
   useEffect(() => {
     loadReservations()
+    loadCompagnies()
   }, [])
 
   const loadReservations = async () => {
@@ -52,6 +55,20 @@ export default function AdminReservations() {
       setReservations([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadCompagnies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('compagnies')
+        .select('id, nom')
+        .order('nom')
+      
+      if (error) throw error
+      setCompagnies(data || [])
+    } catch (error) {
+      console.error('Error loading compagnies:', error)
     }
   }
 
@@ -109,6 +126,8 @@ export default function AdminReservations() {
     
     const matchesStatus = statusFilter === 'all' || r.statut === statusFilter
     
+    const matchesCompagnie = compagnieFilter === 'all' || r.trajets?.compagnies?.nom === compagnieFilter
+    
     // Filtre de date
     let matchesDate = true
     if (dateStart || dateEnd) {
@@ -125,7 +144,7 @@ export default function AdminReservations() {
       }
     }
     
-    return matchesSearch && matchesStatus && matchesDate
+    return matchesSearch && matchesStatus && matchesCompagnie && matchesDate
   })
 
   return (
@@ -141,7 +160,7 @@ export default function AdminReservations() {
 
       {/* Filtres */}
       <div className="card mb-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
@@ -189,9 +208,25 @@ export default function AdminReservations() {
               className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
+
+          <div className="relative">
+            <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <select
+              value={compagnieFilter}
+              onChange={(e) => setCompagnieFilter(e.target.value)}
+              className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            >
+              <option value="all">Toutes les compagnies</option>
+              {compagnies.map((compagnie) => (
+                <option key={compagnie.id} value={compagnie.nom}>
+                  {compagnie.nom}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         
-        {(dateStart || dateEnd || searchTerm || statusFilter !== 'all') && (
+        {(dateStart || dateEnd || searchTerm || statusFilter !== 'all' || compagnieFilter !== 'all') && (
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {filteredReservations.length} résultat{filteredReservations.length > 1 ? 's' : ''} trouvé{filteredReservations.length > 1 ? 's' : ''}
@@ -200,6 +235,7 @@ export default function AdminReservations() {
               onClick={() => {
                 setSearchTerm('')
                 setStatusFilter('all')
+                setCompagnieFilter('all')
                 setDateStart('')
                 setDateEnd('')
               }}
@@ -251,7 +287,13 @@ export default function AdminReservations() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400">Compagnie</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {reservation.trajets?.compagnies?.nom || 'N/A'}
+                      </p>
+                    </div>
                     <div>
                       <p className="text-gray-600 dark:text-gray-400">Trajet</p>
                       <p className="font-semibold text-gray-900 dark:text-white">

@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/Dashboard'
 import AdminTrajets from './pages/admin/Trajets'
 import AdminCompagnies from './pages/admin/Compagnies'
 import AdminReservations from './pages/admin/AdminReservations'
+import AdminUsers from './pages/admin/Users'
 import NotFound from './pages/NotFound'
 
 function ProtectedRoute({ children }) {
@@ -96,6 +97,11 @@ function App() {
         <Route path="admin/reservations" element={
           <AdminRoute>
             <AdminReservations />
+          </AdminRoute>
+        } />
+        <Route path="admin/users" element={
+          <AdminRoute>
+            <AdminUsers />
           </AdminRoute>
         } />
         

@@ -75,18 +75,29 @@ export default function AdminUsers() {
 
   const updateUserCompagnie = async (userId, compagnieId) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ compagnie_id: compagnieId === '' ? null : compagnieId })
-        .eq('id', userId)
+      console.log('🔄 Updating compagnie:', { userId, compagnieId })
       
-      if (error) throw error
+      const updateValue = compagnieId === '' ? null : compagnieId
+      console.log('📝 Update value:', updateValue)
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ compagnie_id: updateValue })
+        .eq('id', userId)
+        .select()
+      
+      if (error) {
+        console.error('❌ Supabase error:', error)
+        throw error
+      }
+      
+      console.log('✅ Update result:', data)
       
       await loadUsers()
       alert('Compagnie mise à jour avec succès')
     } catch (error) {
-      console.error('Error updating user compagnie:', error)
-      alert('Erreur lors de la mise à jour de la compagnie')
+      console.error('❌ Error updating user compagnie:', error)
+      alert(`Erreur lors de la mise à jour de la compagnie: ${error.message}`)
     }
   }
 

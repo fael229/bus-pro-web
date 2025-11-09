@@ -3,31 +3,34 @@ import { useState, useEffect } from 'react'
 import { useSession } from '../contexts/SessionProvider'
 import { useTheme } from '../contexts/ThemeProvider'
 import { supabase } from '../utils/supabase'
-import { Bus, Menu, X, Sun, Moon, User, LogOut, Heart, Calendar, Shield } from 'lucide-react'
+import { Bus, Menu, X, Sun, Moon, User, LogOut, Heart, Calendar, Shield, Building2 } from 'lucide-react'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isCompagnie, setIsCompagnie] = useState(false)
   const { session, signOut } = useSession()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   useEffect(() => {
-    checkAdmin()
+    checkUserRole()
   }, [session])
 
-  const checkAdmin = async () => {
+  const checkUserRole = async () => {
     if (!session?.user?.id) {
       setIsAdmin(false)
+      setIsCompagnie(false)
       return
     }
     const { data } = await supabase
       .from('profiles')
-      .select('admin')
+      .select('admin, compagnie_id')
       .eq('id', session.user.id)
       .single()
     setIsAdmin(data?.admin === true)
+    setIsCompagnie(data?.compagnie_id !== null)
   }
 
   const handleSignOut = async () => {
@@ -121,18 +124,28 @@ export default function Navbar() {
                       <Heart className="h-4 w-4" />
                       <span className="text-sm">Favoris</span>
                     </Link>
+                    {(isAdmin || isCompagnie) && (
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                    )}
                     {isAdmin && (
-                      <>
-                        <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                        <Link
-                          to="/admin"
-                          className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-primary"
-                          onClick={() => setIsProfileOpen(false)}
-                        >
-                          <Shield className="h-4 w-4" />
-                          <span className="text-sm font-semibold">Admin</span>
-                        </Link>
-                      </>
+                      <Link
+                        to="/admin"
+                        className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-error"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span className="text-sm font-semibold">Admin</span>
+                      </Link>
+                    )}
+                    {isCompagnie && (
+                      <Link
+                        to="/compagnie"
+                        className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-warning"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <Building2 className="h-4 w-4" />
+                        <span className="text-sm font-semibold">Ma Compagnie</span>
+                      </Link>
                     )}
                     <button
                       onClick={handleSignOut}
@@ -234,10 +247,19 @@ export default function Navbar() {
                   {isAdmin && (
                     <Link
                       to="/admin"
-                      className="text-primary hover:text-primary-dark px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold"
+                      className="text-error hover:text-error-dark px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Admin
+                    </Link>
+                  )}
+                  {isCompagnie && (
+                    <Link
+                      to="/compagnie"
+                      className="text-warning hover:text-warning-dark px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Ma Compagnie
                     </Link>
                   )}
                   <button

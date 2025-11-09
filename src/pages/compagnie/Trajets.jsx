@@ -195,13 +195,13 @@ export default function CompagnieTrajets() {
                   </div>
                 )}
 
-                {trajet.horaires && (
+                {trajet.horaires && Array.isArray(trajet.horaires) && trajet.horaires.length > 0 && (
                   <div>
                     <span className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">
                       Horaires disponibles
                     </span>
                     <div className="flex flex-wrap gap-2">
-                      {JSON.parse(trajet.horaires).slice(0, 4).map((h, i) => (
+                      {trajet.horaires.slice(0, 4).map((h, i) => (
                         <span 
                           key={i}
                           className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-semibold text-gray-900 dark:text-white"
@@ -209,9 +209,9 @@ export default function CompagnieTrajets() {
                           {h}
                         </span>
                       ))}
-                      {JSON.parse(trajet.horaires).length > 4 && (
+                      {trajet.horaires.length > 4 && (
                         <span className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400">
-                          +{JSON.parse(trajet.horaires).length - 4}
+                          +{trajet.horaires.length - 4}
                         </span>
                       )}
                     </div>

@@ -22,7 +22,7 @@ export default function AdminUsers() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false })
       
       if (error) {
         console.error('❌ Error loading users:', error)
@@ -30,6 +30,7 @@ export default function AdminUsers() {
       }
       
       console.log('✅ Users loaded:', data?.length || 0)
+      console.log('📊 First user:', data?.[0])
       setUsers(data || [])
     } catch (error) {
       console.error('❌ Exception in loadUsers:', error)
@@ -39,11 +40,11 @@ export default function AdminUsers() {
     }
   }
 
-  const updateUserRole = async (userId, newRole) => {
+  const updateUserRole = async (userId, isAdmin) => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update({ admin: isAdmin })
         .eq('id', userId)
       
       if (error) throw error
@@ -75,12 +76,12 @@ export default function AdminUsers() {
     }
   }
 
-  const getRoleBadge = (role) => {
-    const config = {
-      admin: { color: 'bg-error-light text-error', icon: Shield, label: 'Admin' },
-      user: { color: 'bg-primary-light text-primary', icon: User, label: 'Utilisateur' },
-    }
-    const { color, icon: Icon, label } = config[role] || config.user
+  const getRoleBadge = (isAdmin) => {
+    const config = isAdmin
+      ? { color: 'bg-error-light text-error', icon: Shield, label: 'Admin' }
+      : { color: 'bg-primary-light text-primary', icon: User, label: 'Utilisateur' }
+    
+    const { color, icon: Icon, label } = config
     return (
       <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-semibold ${color}`}>
         <Icon className="h-4 w-4" />
@@ -93,9 +94,11 @@ export default function AdminUsers() {
     const matchesSearch = 
       u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.telephone?.includes(searchTerm)
+      u.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter
+    const matchesRole = roleFilter === 'all' || 
+                       (roleFilter === 'admin' && u.admin) ||
+                       (roleFilter === 'user' && !u.admin)
     
     return matchesSearch && matchesRole
   })
@@ -120,7 +123,7 @@ export default function AdminUsers() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Rechercher par nom, email, téléphone..."
+              placeholder="Rechercher par nom, email..."
               className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
@@ -197,36 +200,33 @@ export default function AdminUsers() {
                       )}
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                          {user.username || 'Sans nom'}
+                          {user.full_name || user.username || 'Sans nom'}
                         </h3>
                         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                           <Mail className="h-4 w-4" />
-                          <span>{user.email}</span>
+                          <span>{user.email || 'Email non renseigné'}</span>
                         </div>
                       </div>
                     </div>
                     <div>
-                      {getRoleBadge(user.role)}
+                      {getRoleBadge(user.admin)}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400 flex items-center space-x-1">
-                        <Phone className="h-4 w-4" />
-                        <span>Téléphone</span>
-                      </p>
+                      <p className="text-gray-600 dark:text-gray-400">Nom d'utilisateur</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {user.telephone || 'Non renseigné'}
+                        {user.username || 'Non défini'}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-600 dark:text-gray-400 flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Inscrit le</span>
+                        <span>Mis à jour le</span>
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                        {new Date(user.updated_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                     <div>
@@ -241,8 +241,8 @@ export default function AdminUsers() {
                 {/* Actions */}
                 <div className="flex flex-col space-y-2 lg:w-48">
                   <select
-                    value={user.role}
-                    onChange={(e) => updateUserRole(user.id, e.target.value)}
+                    value={user.admin ? 'admin' : 'user'}
+                    onChange={(e) => updateUserRole(user.id, e.target.value === 'admin')}
                     className="input-field text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   >
                     <option value="user">Utilisateur</option>
@@ -286,7 +286,7 @@ export default function AdminUsers() {
                 Administrateurs
               </p>
               <p className="text-3xl font-bold text-error">
-                {users.filter(u => u.role === 'admin').length}
+                {users.filter(u => u.admin).length}
               </p>
             </div>
             <Shield className="h-10 w-10 text-error" />
@@ -300,7 +300,7 @@ export default function AdminUsers() {
                 Utilisateurs actifs
               </p>
               <p className="text-3xl font-bold text-success">
-                {users.filter(u => u.role === 'user').length}
+                {users.filter(u => !u.admin).length}
               </p>
             </div>
             <User className="h-10 w-10 text-success" />

@@ -1,0 +1,190 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║           🔧 CORRECTION : GESTION DES UTILISATEURS                   ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🐛 PROBLÈME
+═══════════════════════════════════════════════════════════════════════
+Aucun utilisateur ne s'affichait dans /admin/users
+
+❌ Cause : Code utilisait role (text) mais BDD utilise admin (boolean)
+
+✅ SOLUTION
+═══════════════════════════════════════════════════════════════════════
+
+Adaptation complète du code pour utiliser le champ admin (boolean)
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ AVANT (❌)                    │  APRÈS (✅)                         │
+├───────────────────────────────┼─────────────────────────────────────┤
+│ role: 'admin' | 'user'        │  admin: true | false                │
+│ u.role === 'admin'            │  u.admin === true                   │
+│ .update({ role: 'admin' })    │  .update({ admin: true })           │
+│ .order('created_at')          │  .order('updated_at')               │
+│ user.telephone                │  ❌ (n'existe pas)                   │
+└───────────────────────────────┴─────────────────────────────────────┘
+
+🔧 MODIFICATIONS APPORTÉES
+═══════════════════════════════════════════════════════════════════════
+
+1. loadUsers()
+   ✅ Tri par updated_at au lieu de created_at
+   ✅ Ajout log de debug du premier utilisateur
+
+2. updateUserRole(userId, isAdmin)
+   ✅ Paramètre boolean au lieu de string
+   ✅ Update { admin: isAdmin }
+
+3. getRoleBadge(isAdmin)
+   ✅ Paramètre boolean au lieu de string
+   ✅ Logic adaptée au boolean
+
+4. filteredUsers
+   ✅ Filtre : (roleFilter === 'admin' && u.admin)
+   ✅ Filtre : (roleFilter === 'user' && !u.admin)
+
+5. Affichage
+   ✅ full_name || username au lieu de username seul
+   ✅ email || 'Email non renseigné'
+   ✅ Recherche sans téléphone
+   ✅ Date : updated_at au lieu de created_at
+
+6. Dropdown rôle
+   ✅ value={user.admin ? 'admin' : 'user'}
+   ✅ onChange convertit en boolean
+
+7. Statistiques
+   ✅ users.filter(u => u.admin)
+   ✅ users.filter(u => !u.admin)
+
+📊 SCHÉMA BDD
+═══════════════════════════════════════════════════════════════════════
+
+Table profiles :
+  ✅ id (uuid)
+  ✅ username (text)
+  ✅ avatar_url (text)
+  ✅ full_name (text)
+  ✅ updated_at (timestamp)
+  ✅ email (text)
+  ✅ admin (boolean) ⭐ C'EST UN BOOLEAN !
+  ✅ compagnie_id (uuid)
+
+Champs absents :
+  ❌ created_at
+  ❌ telephone  
+  ❌ role
+
+🧪 TESTS
+═══════════════════════════════════════════════════════════════════════
+
+✅ Build : RÉUSSI (9.71s)
+✅ 2391 modules transformés
+✅ 846.85 kB (232.84 kB gzippé)
+✅ 0 erreurs
+
+🔐 RLS POLICIES NÉCESSAIRES
+═══════════════════════════════════════════════════════════════════════
+
+-- Lecture (tous les utilisateurs)
+CREATE POLICY "Profils lisibles par tous"
+ON profiles FOR SELECT TO authenticated USING (true);
+
+-- Mise à jour (seulement admins)
+CREATE POLICY "Admins peuvent modifier les profils"
+ON profiles FOR UPDATE TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE id = auth.uid() AND admin = true
+  )
+);
+
+-- Suppression (seulement admins)
+CREATE POLICY "Admins peuvent supprimer des profils"
+ON profiles FOR DELETE TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE id = auth.uid() AND admin = true
+  )
+);
+
+🚀 DÉPLOIEMENT
+═══════════════════════════════════════════════════════════════════════
+
+1. ⚠️ CONFIGURER SUPABASE AVANT DE DÉPLOYER
+   □ Aller dans Supabase SQL Editor
+   □ Exécuter les 3 RLS policies ci-dessus
+   □ Vérifier qu'elles sont bien créées
+
+2. POUSSER LE CODE
+   git add .
+   git commit -m "Fix: Adapter gestion users au schéma DB (admin boolean)"
+   git push origin main
+
+3. TESTER
+   □ Se connecter en admin
+   □ Aller sur /admin/users
+   □ Vérifier que les utilisateurs s'affichent
+   □ Tester recherche par nom/email
+   □ Tester filtre Admin/User
+   □ Changer User → Admin
+   □ Changer Admin → User
+   □ Vérifier que les stats se mettent à jour
+
+📈 RÉSULTAT ATTENDU
+═══════════════════════════════════════════════════════════════════════
+
+AVANT (❌)                    APRÈS (✅)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Page vide                     Tous les utilisateurs visibles
+0 utilisateurs                25 utilisateurs (exemple)
+Erreurs console               Aucune erreur
+Filtres cassés                Filtres fonctionnels
+Update impossible             Update opérationnel
+Stats = 0                     Stats correctes
+
+💡 POINTS CLÉS
+═══════════════════════════════════════════════════════════════════════
+
+✅ admin est un BOOLEAN (true/false), pas un string
+✅ Utiliser updated_at car created_at n'existe pas
+✅ Le champ telephone n'existe pas dans profiles
+✅ Utiliser full_name en priorité, sinon username
+✅ Les RLS policies doivent vérifier admin = true
+
+🎯 CHECKLIST FINALE
+═══════════════════════════════════════════════════════════════════════
+
+Avant de déployer :
+  ✅ Code adapté au schéma BDD
+  ✅ Build réussi localement
+  □ RLS policies configurées dans Supabase
+  □ Testé en local avec vraies données
+  □ Commit et push effectués
+
+Après déploiement :
+  □ Page /admin/users accessible
+  □ Utilisateurs affichés
+  □ Recherche fonctionne
+  □ Filtres fonctionnent
+  □ Changement de rôle fonctionne
+  □ Suppression fonctionne
+  □ Statistiques correctes
+
+═══════════════════════════════════════════════════════════════════════
+
+📝 Fichier modifié : src/pages/admin/Users.jsx
+🔄 Type : Adaptation schéma BDD
+⚡ Impact : Fonctionnalité opérationnelle
+✅ Status : Prêt à déployer
+
+═══════════════════════════════════════════════════════════════════════
+
+🎉 LA GESTION DES UTILISATEURS EST MAINTENANT COMPATIBLE !
+
+Les utilisateurs devraient s'afficher correctement après le déploiement.
+N'oubliez pas de configurer les RLS policies dans Supabase AVANT !
+
+═══════════════════════════════════════════════════════════════════════

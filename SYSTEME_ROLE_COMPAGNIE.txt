@@ -1,0 +1,375 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║           🏢 SYSTÈME DE RÔLE COMPAGNIE                               ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📅 Date : 9 Novembre 2025
+🔧 Build testé : ✅ RÉUSSI (12.29s)
+📦 Code ajouté : ~800 lignes
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 OBJECTIF
+═══════════════════════════════════════════════════════════════════════
+
+Permettre aux gestionnaires de compagnies de transport de gérer leur
+activité de manière autonome avec un accès limité uniquement à :
+  ✓ Leur compagnie
+  ✓ Leurs trajets
+  ✓ Leurs réservations
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 HIÉRARCHIE DES RÔLES
+═══════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 👑 ADMIN (admin = true)                                             │
+│ ✓ Accès total à tout                                               │
+│ ✓ Peut assigner des compagnies aux utilisateurs                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🏢 GESTIONNAIRE COMPAGNIE (compagnie_id = UUID)                    │
+│ ✓ Dashboard de sa compagnie                                        │
+│ ✓ Voir les trajets de sa compagnie                                 │
+│ ✓ Gérer les réservations de ses trajets                            │
+│ ❌ Pas d'accès aux autres compagnies                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 👤 UTILISATEUR (admin = false, compagnie_id = null)                │
+│ ✓ Rechercher et réserver des trajets                               │
+│ ❌ Pas d'accès backend                                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+
+🆕 FICHIERS CRÉÉS (4)
+═══════════════════════════════════════════════════════════════════════
+
+1. CompagnieRoute.jsx
+   📁 src/components/CompagnieRoute.jsx
+   🔒 Protection des routes compagnie
+   ✓ Vérifie admin = true OU compagnie_id != null
+
+2. Dashboard.jsx (Compagnie)
+   📁 src/pages/compagnie/Dashboard.jsx
+   📊 Statistiques et infos de la compagnie
+   ✓ Trajets actifs
+   ✓ Total réservations
+   ✓ Revenu total
+   ✓ Réservations par statut
+   ✓ 5 réservations récentes
+
+3. Trajets.jsx (Compagnie)
+   📁 src/pages/compagnie/Trajets.jsx
+   🚌 Liste des trajets de la compagnie
+   ✓ Recherche par départ/arrivée/gare
+   ✓ Affichage détaillé (prix, horaires, note)
+
+4. Reservations.jsx (Compagnie)
+   📁 src/pages/compagnie/Reservations.jsx
+   📅 Gestion des réservations
+   ✓ Recherche et filtres
+   ✓ Confirmer / Annuler réservations
+
+═══════════════════════════════════════════════════════════════════════
+
+🔧 FICHIERS MODIFIÉS (2)
+═══════════════════════════════════════════════════════════════════════
+
+1. Users.jsx (Admin)
+   ✓ Chargement liste des compagnies
+   ✓ Nouveau dropdown "Compagnie"
+   ✓ Fonction updateUserCompagnie()
+   ✓ Badge "Compagnie" (orange)
+   ✓ Affichage compagnie_id sous le badge
+
+2. App.jsx
+   ✓ Import CompagnieRoute
+   ✓ Import 3 pages compagnie
+   ✓ 3 nouvelles routes :
+      - /compagnie (Dashboard)
+      - /compagnie/trajets
+      - /compagnie/reservations
+
+═══════════════════════════════════════════════════════════════════════
+
+🎨 BADGES DE RÔLE
+═══════════════════════════════════════════════════════════════════════
+
+🔴 Admin          : admin = true
+   Couleur        : Rouge (bg-error-light)
+   Icône          : 🛡️ Shield
+
+🟠 Compagnie      : compagnie_id != null
+   Couleur        : Orange (bg-warning-light)
+   Icône          : 🏢 Building2
+   Extra          : Affiche ID (8 premiers caractères)
+
+🔵 Utilisateur    : admin = false ET compagnie_id = null
+   Couleur        : Bleu (bg-primary-light)
+   Icône          : 👤 User
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 UTILISATION
+═══════════════════════════════════════════════════════════════════════
+
+1️⃣  ASSIGNER UN UTILISATEUR À UNE COMPAGNIE (Admin)
+
+  1. Se connecter en tant qu'admin
+  2. Aller sur /admin/users
+  3. Trouver l'utilisateur
+  4. Dans dropdown "Compagnie", sélectionner une compagnie
+  5. Badge change de "Utilisateur" à "Compagnie"
+  6. L'utilisateur peut maintenant accéder à /compagnie
+
+2️⃣  ACCÉDER AU DASHBOARD COMPAGNIE (Gestionnaire)
+
+  1. Se connecter avec un compte assigné
+  2. Aller sur /compagnie
+  3. Voir dashboard avec stats de sa compagnie
+
+  URLs disponibles :
+    - /compagnie              → Dashboard
+    - /compagnie/trajets      → Liste trajets
+    - /compagnie/reservations → Liste réservations
+
+3️⃣  GÉRER LES RÉSERVATIONS (Gestionnaire)
+
+  1. Aller sur /compagnie/reservations
+  2. Voir toutes les réservations de mes trajets
+  3. Pour réservations "En attente" :
+     - Cliquer "Confirmer" → statut = confirmee
+     - Cliquer "Annuler"   → statut = annulee
+
+═══════════════════════════════════════════════════════════════════════
+
+🔐 SÉCURITÉ (RLS POLICIES)
+═══════════════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT : Configurer les RLS policies dans Supabase
+
+-- Trajets : Lecture pour gestionnaires de compagnie
+CREATE POLICY "Compagnies peuvent lire leurs trajets"
+ON trajets FOR SELECT TO authenticated
+USING (
+  compagnie_id IN (
+    SELECT compagnie_id FROM profiles WHERE id = auth.uid()
+  )
+  OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND admin = true)
+);
+
+-- Réservations : Lecture pour gestionnaires de compagnie
+CREATE POLICY "Compagnies peuvent lire leurs réservations"
+ON reservations FOR SELECT TO authenticated
+USING (
+  trajet_id IN (
+    SELECT t.id FROM trajets t
+    INNER JOIN profiles p ON t.compagnie_id = p.compagnie_id
+    WHERE p.id = auth.uid()
+  )
+  OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND admin = true)
+  OR user_id = auth.uid()
+);
+
+-- Réservations : Modification pour gestionnaires de compagnie
+CREATE POLICY "Compagnies peuvent modifier leurs réservations"
+ON reservations FOR UPDATE TO authenticated
+USING (
+  trajet_id IN (
+    SELECT t.id FROM trajets t
+    INNER JOIN profiles p ON t.compagnie_id = p.compagnie_id
+    WHERE p.id = auth.uid()
+  )
+  OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND admin = true)
+);
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 STATISTIQUES AFFICHÉES
+═══════════════════════════════════════════════════════════════════════
+
+Dashboard Compagnie :
+
+┌────────────────────────────────────────────────────────────────────┐
+│ [Logo] Nom de la compagnie                                         │
+│        Tableau de bord de votre compagnie                          │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ 🚌 Trajets actifs     📅 Réservations      💰 Revenu total        │
+│    15                     230                   4 500 000 FCFA     │
+│                                                                     │
+│ ✅ Confirmées        ⏰ En attente        ❌ Annulées             │
+│    180                   45                     5                  │
+│                                                                     │
+├────────────────────────────────────────────────────────────────────┤
+│ Actions rapides :                                                  │
+│ [🚌 Gérer mes trajets] [📅 Gérer les réservations]               │
+├────────────────────────────────────────────────────────────────────┤
+│ Réservations récentes :                                            │
+│ [5 dernières réservations avec détails]                           │
+└────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+
+🔄 FLUX DE DONNÉES
+═══════════════════════════════════════════════════════════════════════
+
+USER (compagnie_id = X)
+    │
+    ▼
+Load Profile → compagnie_id = X
+    │
+    ▼
+Load Trajets WHERE compagnie_id = X
+    │
+    ├──→ trajet_1 (id: ABC)
+    ├──→ trajet_2 (id: DEF)
+    └──→ trajet_3 (id: GHI)
+    │
+    ▼
+Load Reservations WHERE trajet_id IN [ABC, DEF, GHI]
+    │
+    ├──→ reservation_1 (trajet: ABC)
+    ├──→ reservation_2 (trajet: ABC)
+    ├──→ reservation_3 (trajet: DEF)
+    └──→ reservation_4 (trajet: GHI)
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 CAS D'USAGE
+═══════════════════════════════════════════════════════════════════════
+
+Cas 1 : Nouvelle compagnie de transport
+  1. Admin crée compagnie dans /admin/compagnies
+  2. Propriétaire s'inscrit normalement
+  3. Admin assigne compagnie au propriétaire
+  4. Propriétaire gère sa compagnie via /compagnie
+
+Cas 2 : Plusieurs gestionnaires pour une compagnie
+  1. Admin assigne même compagnie à plusieurs users
+  2. Tous voient les mêmes données
+  3. Tous peuvent gérer les réservations
+  4. Utile pour grandes compagnies
+
+Cas 3 : Retrait d'un gestionnaire
+  1. Admin sélectionne "Aucune compagnie"
+  2. Utilisateur perd accès à /compagnie
+  3. Devient utilisateur normal
+
+═══════════════════════════════════════════════════════════════════════
+
+🧪 TESTS
+═══════════════════════════════════════════════════════════════════════
+
+Test 1 : Assignation
+  □ Admin assigne compagnie à user
+  □ Badge devient "Compagnie"
+  □ ID compagnie s'affiche
+
+Test 2 : Accès Dashboard
+  □ User compagnie va sur /compagnie
+  □ Dashboard s'affiche
+  □ Statistiques correctes
+
+Test 3 : Filtrage
+  □ Seuls trajets de MA compagnie visibles
+  □ Seules réservations de MES trajets visibles
+  □ Pas d'accès aux autres compagnies
+
+Test 4 : Actions réservations
+  □ Confirmer une réservation
+  □ Annuler une réservation
+  □ Statuts se mettent à jour
+
+Test 5 : Sécurité
+  □ User normal ne peut pas accéder /compagnie
+  □ Message "Accès refusé"
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ RÉSUMÉ
+═══════════════════════════════════════════════════════════════════════
+
+Fichiers créés        : 4
+Fichiers modifiés     : 2
+Lignes de code        : ~800
+Build                 : ✅ Réussi (12.29s)
+Bundle                : 870.33 kB (235.31 kB gzippé)
+
+Nouveau rôle          : 🏢 Gestionnaire Compagnie
+Accès                 : Dashboard, Trajets, Réservations
+Filtrage              : Par compagnie_id
+Sécurité              : RLS Policies Supabase
+
+═══════════════════════════════════════════════════════════════════════
+
+📝 CHECKLIST DÉPLOIEMENT
+═══════════════════════════════════════════════════════════════════════
+
+Avant de déployer :
+  ✅ Code compilé sans erreur
+  ✅ CompagnieRoute protège les routes
+  ✅ Users.jsx permet assignation
+  □ RLS policies configurées dans Supabase ⚠️
+  □ Tests d'assignation effectués
+  □ Tests d'accès effectués
+  □ Tests de filtrage effectués
+
+Après déploiement :
+  □ Assigner une compagnie à un user test
+  □ Tester /compagnie en tant que gestionnaire
+  □ Vérifier filtrage des données
+  □ Tester confirmation/annulation réservations
+  □ Vérifier qu'un user normal ne peut pas accéder
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 DÉPLOIEMENT
+═══════════════════════════════════════════════════════════════════════
+
+1. ⚠️ CONFIGURER SUPABASE (OBLIGATOIRE)
+   □ Aller dans Supabase SQL Editor
+   □ Exécuter les 3 RLS policies ci-dessus
+   □ Vérifier qu'elles sont bien créées
+
+2. POUSSER LE CODE
+   git add .
+   git commit -m "Feat: Système de rôle Compagnie"
+   git push origin main
+
+3. TESTER
+   □ Assigner une compagnie à un utilisateur
+   □ Tester l'accès et les fonctionnalités
+   □ Vérifier la sécurité et le filtrage
+
+═══════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════
+
+Guide complet : ROLE_COMPAGNIE.md
+
+Contient :
+  ✓ Vue d'ensemble du système
+  ✓ Hiérarchie des rôles
+  ✓ Description des fichiers
+  ✓ RLS Policies SQL
+  ✓ Guide d'utilisation
+  ✓ Cas d'usage
+  ✓ Tests
+  ✓ Interface
+
+═══════════════════════════════════════════════════════════════════════
+
+🎉 LE SYSTÈME DE RÔLE COMPAGNIE EST OPÉRATIONNEL !
+
+Les gestionnaires de compagnies peuvent maintenant gérer leur activité
+de manière autonome avec un accès limité uniquement à leurs données.
+
+N'oubliez pas de configurer les RLS Policies dans Supabase avant de
+déployer !
+
+═══════════════════════════════════════════════════════════════════════

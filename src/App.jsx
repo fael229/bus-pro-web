@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSession } from './contexts/SessionProvider'
 import Layout from './components/Layout'
 import AdminRoute from './components/AdminRoute'
+import CompagnieRoute from './components/CompagnieRoute'
 import Home from './pages/Home'
 import Trajets from './pages/Trajets'
 import TrajetDetails from './pages/TrajetDetails'
@@ -19,6 +20,9 @@ import AdminTrajets from './pages/admin/Trajets'
 import AdminCompagnies from './pages/admin/Compagnies'
 import AdminReservations from './pages/admin/AdminReservations'
 import AdminUsers from './pages/admin/Users'
+import CompagnieDashboard from './pages/compagnie/Dashboard'
+import CompagnieTrajets from './pages/compagnie/Trajets'
+import CompagnieReservations from './pages/compagnie/Reservations'
 import NotFound from './pages/NotFound'
 
 function ProtectedRoute({ children }) {
@@ -103,6 +107,23 @@ function App() {
           <AdminRoute>
             <AdminUsers />
           </AdminRoute>
+        } />
+        
+        {/* Routes Compagnie */}
+        <Route path="compagnie" element={
+          <CompagnieRoute>
+            <CompagnieDashboard />
+          </CompagnieRoute>
+        } />
+        <Route path="compagnie/trajets" element={
+          <CompagnieRoute>
+            <CompagnieTrajets />
+          </CompagnieRoute>
+        } />
+        <Route path="compagnie/reservations" element={
+          <CompagnieRoute>
+            <CompagnieReservations />
+          </CompagnieRoute>
         } />
         
         {/* 404 */}

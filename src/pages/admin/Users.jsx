@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Users as UsersIcon, Search, Shield, User, Mail, Phone, Calendar, Edit, Trash2, Ban, CheckCircle } from 'lucide-react'
+import { Users as UsersIcon, Search, Shield, User, Mail, Phone, Calendar, Edit, Trash2, Ban, CheckCircle, Building2 } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
+  const [compagnies, setCompagnies] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
@@ -12,6 +13,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     loadUsers()
+    loadCompagnies()
   }, [])
 
   const loadUsers = async () => {
@@ -40,6 +42,20 @@ export default function AdminUsers() {
     }
   }
 
+  const loadCompagnies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('compagnies')
+        .select('id, nom')
+        .order('nom')
+      
+      if (error) throw error
+      setCompagnies(data || [])
+    } catch (error) {
+      console.error('Error loading compagnies:', error)
+    }
+  }
+
   const updateUserRole = async (userId, isAdmin) => {
     try {
       const { error } = await supabase
@@ -54,6 +70,23 @@ export default function AdminUsers() {
     } catch (error) {
       console.error('Error updating user role:', error)
       alert('Erreur lors de la mise à jour du rôle')
+    }
+  }
+
+  const updateUserCompagnie = async (userId, compagnieId) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ compagnie_id: compagnieId === '' ? null : compagnieId })
+        .eq('id', userId)
+      
+      if (error) throw error
+      
+      await loadUsers()
+      alert('Compagnie mise à jour avec succès')
+    } catch (error) {
+      console.error('Error updating user compagnie:', error)
+      alert('Erreur lors de la mise à jour de la compagnie')
     }
   }
 
@@ -76,10 +109,15 @@ export default function AdminUsers() {
     }
   }
 
-  const getRoleBadge = (isAdmin) => {
-    const config = isAdmin
-      ? { color: 'bg-error-light text-error', icon: Shield, label: 'Admin' }
-      : { color: 'bg-primary-light text-primary', icon: User, label: 'Utilisateur' }
+  const getRoleBadge = (isAdmin, compagnieId) => {
+    let config
+    if (isAdmin) {
+      config = { color: 'bg-error-light text-error', icon: Shield, label: 'Admin' }
+    } else if (compagnieId) {
+      config = { color: 'bg-warning-light text-warning', icon: Building2, label: 'Compagnie' }
+    } else {
+      config = { color: 'bg-primary-light text-primary', icon: User, label: 'Utilisateur' }
+    }
     
     const { color, icon: Icon, label } = config
     return (
@@ -208,8 +246,13 @@ export default function AdminUsers() {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      {getRoleBadge(user.admin)}
+                    <div className="flex flex-col items-end space-y-1">
+                      {getRoleBadge(user.admin, user.compagnie_id)}
+                      {user.compagnie_id && (
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          ID: {user.compagnie_id.substring(0, 8)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -239,7 +282,7 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col space-y-2 lg:w-48">
+                <div className="flex flex-col space-y-2 lg:w-56">
                   <select
                     value={user.admin ? 'admin' : 'user'}
                     onChange={(e) => updateUserRole(user.id, e.target.value === 'admin')}
@@ -247,6 +290,20 @@ export default function AdminUsers() {
                   >
                     <option value="user">Utilisateur</option>
                     <option value="admin">Admin</option>
+                  </select>
+                  
+                  <select
+                    value={user.compagnie_id || ''}
+                    onChange={(e) => updateUserCompagnie(user.id, e.target.value)}
+                    className="input-field text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    disabled={user.admin}
+                  >
+                    <option value="">Aucune compagnie</option>
+                    {compagnies.map((compagnie) => (
+                      <option key={compagnie.id} value={compagnie.id}>
+                        {compagnie.nom}
+                      </option>
+                    ))}
                   </select>
                   
                   <button

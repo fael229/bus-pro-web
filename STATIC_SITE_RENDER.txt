@@ -1,0 +1,160 @@
+════════════════════════════════════════════════════════════════════════════
+   ✅ SOLUTION : Config pour Static Site Render
+════════════════════════════════════════════════════════════════════════════
+
+🎯 PROBLÈME IDENTIFIÉ :
+   Vous utilisez un "Static Site" sur Render
+   → Ne peut PAS exécuter Node.js ou Express
+   → Ne peut PAS utiliser startCommand: node server.js
+
+
+════════════════════════════════════════════════════════════════════════════
+   📝 DIFFÉRENCE RENDER
+════════════════════════════════════════════════════════════════════════════
+
+STATIC SITE :
+   ✅ Gratuit
+   ✅ Fichiers HTML/CSS/JS uniquement
+   ✅ Utilise _redirects pour les routes
+   ❌ PAS de serveur Node/Express
+   ❌ PAS de startCommand
+
+WEB SERVICE :
+   ✅ Peut exécuter Node.js/Express
+   ✅ Peut utiliser startCommand
+   ✅ Plus de contrôle
+   💰 Payant après les heures gratuites
+
+
+════════════════════════════════════════════════════════════════════════════
+   ✅ CONFIGURATION CORRECTE (Static Site)
+════════════════════════════════════════════════════════════════════════════
+
+render.yaml :
+   services:
+     - type: web
+       runtime: static              ← Static
+       buildCommand: npm ci && npm run build
+       staticPublishPath: ./dist    ← Dossier à publier
+       # PAS de startCommand !
+
+public/_redirects :
+   /*    /index.html   200          ← Redirige tout vers index.html
+
+
+════════════════════════════════════════════════════════════════════════════
+   🚀 DÉPLOIEMENT
+════════════════════════════════════════════════════════════════════════════
+
+✅ render.yaml corrigé    : runtime: static
+✅ _redirects correct     : /*    /index.html   200
+✅ Build réussi          : dist/ contient _redirects
+✅ Commit fait           : "Fix: Config Static Site Render"
+✅ Push effectué         : main -> main
+
+⏱️ Render redéploie maintenant (2-3 minutes)
+
+
+════════════════════════════════════════════════════════════════════════════
+   🔍 VÉRIFIER APRÈS DÉPLOIEMENT
+════════════════════════════════════════════════════════════════════════════
+
+Dashboard Render → Logs :
+
+   ==> Building...
+   npm ci && npm run build
+   ✓ built in 1m 8s
+   ==> Deploying static site
+   ==> Publishing ./dist
+   🟢 Your service is live
+
+
+════════════════════════════════════════════════════════════════════════════
+   🧪 TESTER
+════════════════════════════════════════════════════════════════════════════
+
+Après que le status soit 🟢 Live :
+
+   https://votre-app.onrender.com/compagnie/trajets
+   https://votre-app.onrender.com/admin/users
+   https://votre-app.onrender.com/trajets
+
+RÉSULTAT ATTENDU :
+   ✅ Pages s'affichent correctement
+   ✅ Plus de page 404
+   ✅ Refresh (F5) fonctionne
+
+
+════════════════════════════════════════════════════════════════════════════
+   📋 CHECKLIST
+════════════════════════════════════════════════════════════════════════════
+
+✅ Vérifier que vous avez un "Static Site" sur Render (pas Web Service)
+✅ Attendre 2-3 minutes après le push
+✅ Vérifier que les logs montrent "Deploying static site"
+✅ Status 🟢 Live
+✅ Tester les URLs en accès direct
+✅ Hard refresh (Ctrl+Shift+R) si nécessaire
+
+
+════════════════════════════════════════════════════════════════════════════
+   ⚠️ IMPORTANT
+════════════════════════════════════════════════════════════════════════════
+
+Pour les Static Sites Render :
+
+✅ À UTILISER :
+   - runtime: static
+   - staticPublishPath: ./dist
+   - Fichier _redirects
+
+❌ NE PAS UTILISER :
+   - runtime: node
+   - startCommand: node server.js
+   - server.js (sera ignoré)
+
+
+════════════════════════════════════════════════════════════════════════════
+   🎯 POURQUOI ÇA VA MARCHER MAINTENANT
+════════════════════════════════════════════════════════════════════════════
+
+AVANT (erreur) :
+   runtime: node + startCommand: node server.js
+   → Ne fonctionne PAS avec Static Site
+   → Render ignorait la config
+   → Routes ne marchaient pas
+
+APRÈS (correct) :
+   runtime: static + _redirects
+   → Compatible avec Static Site ✅
+   → Render applique _redirects
+   → Routes SPA fonctionnent ✅
+
+
+════════════════════════════════════════════════════════════════════════════
+   💡 ALTERNATIVE SI ÇA NE MARCHE PAS
+════════════════════════════════════════════════════════════════════════════
+
+Si les Static Sites Render ne gèrent pas bien les _redirects,
+vous pouvez créer un "Web Service" (au lieu de Static Site) :
+
+Dashboard Render → New → Web Service → Connectez votre repo
+
+Puis utilisez :
+   runtime: node
+   startCommand: node server.js
+
+Mais attention : Web Service consomme des heures gratuites.
+
+
+════════════════════════════════════════════════════════════════════════════
+Date : 10 novembre 2025, 13:48
+Type : Static Site
+Config : runtime: static + _redirects
+Status : ⏱️ EN COURS DE DÉPLOIEMENT
+════════════════════════════════════════════════════════════════════════════
+
+Attendez 2-3 minutes et testez vos routes ! 🎯
+
+SI ÇA NE MARCHE TOUJOURS PAS :
+Dites-moi et on passera à un Web Service (avec Node/Express).

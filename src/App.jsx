@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useSession } from './contexts/SessionProvider'
+import { useEffect } from 'react'
 import Layout from './components/Layout'
 import AdminRoute from './components/AdminRoute'
 import CompagnieRoute from './components/CompagnieRoute'
@@ -44,6 +45,13 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const location = useLocation()
+  
+  useEffect(() => {
+    console.log('🔍 React Router pathname:', location.pathname)
+    console.log('🔍 Window location:', window.location.href)
+  }, [location])
+  
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

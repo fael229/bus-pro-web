@@ -1,12 +1,7 @@
 services:
   - type: web
     name: bus-benin-web
-    runtime: node
+    runtime: static
     plan: free
     buildCommand: npm ci && npm run build
-    startCommand: node server.js
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-      - key: NODE_ENV
-        value: production
+    staticPublishPath: ./dist

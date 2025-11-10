@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Users, Bus, Calendar, TrendingUp, DollarSign, 
-  Activity, CheckCircle, Clock, XCircle, MapPin 
+  Activity, CheckCircle, Clock, XCircle, MapPin,
+  Building2, Star, Filter, Package 
 } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 import ReservationsChart from '../../components/admin/ReservationsChart'
@@ -11,6 +12,7 @@ import CompagniesChart from '../../components/admin/CompagniesChart'
 import StatusChart from '../../components/admin/StatusChart'
 
 export default function AdminDashboard() {
+  const [period, setPeriod] = useState('7days') // 'today', '7days', '30days', 'month', 'all'
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalReservations: 0,
@@ -19,6 +21,13 @@ export default function AdminDashboard() {
     pendingReservations: 0,
     confirmedReservations: 0,
     canceledReservations: 0,
+    totalCompagnies: 0,
+    totalDestinations: 0,
+    totalAvis: 0,
+    avgRevenue: 0,
+    conversionRate: 0,
+    newUsersThisPeriod: 0,
+    newReservationsThisPeriod: 0,
   })
   const [recentReservations, setRecentReservations] = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,56 +42,127 @@ export default function AdminDashboard() {
     loadStats()
     loadRecentReservations()
     loadChartData()
-  }, [])
+  }, [period])
+
+  const getStartDate = () => {
+    const now = new Date()
+    switch (period) {
+      case 'today':
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return today.toISOString()
+      case '7days':
+        const week = new Date()
+        week.setDate(week.getDate() - 7)
+        return week.toISOString()
+      case '30days':
+        const month = new Date()
+        month.setDate(month.getDate() - 30)
+        return month.toISOString()
+      case 'month':
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+        return firstDay.toISOString()
+      default:
+        return null // 'all' - pas de filtre
+    }
+  }
 
   const loadStats = async () => {
     try {
-      console.log('📊 Loading dashboard stats...')
+      console.log('📊 Loading dashboard stats for period:', period)
+      const startDate = getStartDate()
       
-      // Nombre d'utilisateurs
-      const { count: usersCount, error: usersError } = await supabase
+      // Nombre total d'utilisateurs
+      const { count: usersCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
 
-      if (usersError) console.error('Error loading users count:', usersError)
+      // Nouveaux utilisateurs dans la période
+      let newUsersQuery = supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+      if (startDate) {
+        newUsersQuery = newUsersQuery.gte('updated_at', startDate)
+      }
+      const { count: newUsersCount } = await newUsersQuery
 
-      // Nombre de réservations
-      const { count: reservationsCount, error: resError } = await supabase
+      // Nombre total de réservations
+      const { count: reservationsCount } = await supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
-      
-      if (resError) console.error('Error loading reservations count:', resError)
+
+      // Nouvelles réservations dans la période
+      let newReservationsQuery = supabase
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+      if (startDate) {
+        newReservationsQuery = newReservationsQuery.gte('created_at', startDate)
+      }
+      const { count: newReservationsCount } = await newReservationsQuery
 
       // Nombre de trajets
       const { count: trajetsCount } = await supabase
         .from('trajets')
         .select('*', { count: 'exact', head: true })
 
-      // Réservations en attente
-      const { count: pendingCount } = await supabase
+      // Nombre de compagnies
+      const { count: compagniesCount } = await supabase
+        .from('compagnies')
+        .select('*', { count: 'exact', head: true })
+
+      // Nombre de destinations
+      const { count: destinationsCount } = await supabase
+        .from('destinations')
+        .select('*', { count: 'exact', head: true })
+
+      // Nombre d'avis
+      const { count: avisCount } = await supabase
+        .from('avis')
+        .select('*', { count: 'exact', head: true })
+
+      // Réservations en attente (période)
+      let pendingQuery = supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
         .eq('statut', 'en_attente')
+      if (startDate) {
+        pendingQuery = pendingQuery.gte('created_at', startDate)
+      }
+      const { count: pendingCount } = await pendingQuery
 
-      // Réservations confirmées
-      const { count: confirmedCount } = await supabase
+      // Réservations confirmées (période)
+      let confirmedQuery = supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
         .eq('statut', 'confirmee')
+      if (startDate) {
+        confirmedQuery = confirmedQuery.gte('created_at', startDate)
+      }
+      const { count: confirmedCount } = await confirmedQuery
 
-      // Réservations annulées
-      const { count: canceledCount } = await supabase
+      // Réservations annulées (période)
+      let canceledQuery = supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
         .eq('statut', 'annulee')
+      if (startDate) {
+        canceledQuery = canceledQuery.gte('created_at', startDate)
+      }
+      const { count: canceledCount } = await canceledQuery
 
-      // Revenu total (réservations confirmées)
-      const { data: revenueData } = await supabase
+      // Revenu total (période)
+      let revenueQuery = supabase
         .from('reservations')
         .select('montant_total')
         .eq('statut_paiement', 'approved')
+      if (startDate) {
+        revenueQuery = revenueQuery.gte('created_at', startDate)
+      }
+      const { data: revenueData } = await revenueQuery
 
       const totalRevenue = revenueData?.reduce((sum, r) => sum + parseFloat(r.montant_total || 0), 0) || 0
+      const avgRevenue = revenueData?.length > 0 ? totalRevenue / revenueData.length : 0
+      const conversionRate = newReservationsCount > 0 ? (confirmedCount / newReservationsCount * 100) : 0
 
       setStats({
         totalUsers: usersCount || 0,
@@ -92,6 +172,13 @@ export default function AdminDashboard() {
         pendingReservations: pendingCount || 0,
         confirmedReservations: confirmedCount || 0,
         canceledReservations: canceledCount || 0,
+        totalCompagnies: compagniesCount || 0,
+        totalDestinations: destinationsCount || 0,
+        totalAvis: avisCount || 0,
+        avgRevenue: avgRevenue,
+        conversionRate: conversionRate,
+        newUsersThisPeriod: newUsersCount || 0,
+        newReservationsThisPeriod: newReservationsCount || 0,
       })
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -231,44 +318,74 @@ export default function AdminDashboard() {
   return (
     <div className="page-container">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Dashboard Admin
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Vue d'ensemble de la plateforme Bus Bénin
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Dashboard Admin
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Vue d'ensemble de la plateforme Bus Bénin
+            </p>
+          </div>
+          
+          {/* Filtre de période */}
+          <div className="flex items-center space-x-2">
+            <Filter className="h-5 w-5 text-gray-500 hidden sm:block" />
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="input-field py-2 text-sm sm:text-base"
+            >
+              <option value="today">Aujourd'hui</option>
+              <option value="7days">7 derniers jours</option>
+              <option value="30days">30 derniers jours</option>
+              <option value="month">Ce mois</option>
+              <option value="all">Tout</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex-1">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Utilisateurs
               </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.totalUsers}
               </p>
+              {period !== 'all' && stats.newUsersThisPeriod > 0 && (
+                <p className="text-xs text-success mt-1">
+                  +{stats.newUsersThisPeriod} nouveaux
+                </p>
+              )}
             </div>
             <div className="p-3 bg-primary-light rounded-lg">
-              <Users className="h-8 w-8 text-primary" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex-1">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Réservations
               </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalReservations}
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.newReservationsThisPeriod}
               </p>
+              {period !== 'all' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Total: {stats.totalReservations}
+                </p>
+              )}
             </div>
             <div className="p-3 bg-success-light rounded-lg">
-              <Calendar className="h-8 w-8 text-success" />
+              <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
             </div>
           </div>
         </div>
@@ -302,6 +419,81 @@ export default function AdminDashboard() {
             <div className="p-3 bg-success-light rounded-lg">
               <DollarSign className="h-8 w-8 text-success" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Nouvelles Stats Cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
+        <div className="card bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-blue-700 rounded-lg mb-2">
+              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Compagnies</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalCompagnies}
+            </p>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-green-700 rounded-lg mb-2">
+              <MapPin className="h-6 w-6 text-green-600 dark:text-green-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Destinations</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalDestinations}
+            </p>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900 dark:to-yellow-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-yellow-700 rounded-lg mb-2">
+              <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Avis</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalAvis}
+            </p>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-purple-700 rounded-lg mb-2">
+              <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Revenu Moy.</p>
+            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+              {Math.round(stats.avgRevenue).toLocaleString()} FCFA
+            </p>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900 dark:to-pink-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-pink-700 rounded-lg mb-2">
+              <TrendingUp className="h-6 w-6 text-pink-600 dark:text-pink-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Conversion</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.conversionRate.toFixed(1)}%
+            </p>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900 dark:to-indigo-800">
+          <div className="text-center">
+            <div className="inline-flex p-2 bg-white dark:bg-indigo-700 rounded-lg mb-2">
+              <Package className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Trajets</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              {stats.totalTrajets}
+            </p>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Users, Bus, Calendar, TrendingUp, DollarSign, 
-  Activity, CheckCircle, Clock, XCircle 
+  Activity, CheckCircle, Clock, XCircle, MapPin 
 } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 import ReservationsChart from '../../components/admin/ReservationsChart'
@@ -412,6 +412,22 @@ export default function AdminDashboard() {
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Modifier les rôles
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/admin/destinations" className="card hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-secondary-light rounded-lg">
+              <MapPin className="h-6 w-6 text-secondary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white">
+                Gérer les destinations
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Villes et localités
               </p>
             </div>
           </div>

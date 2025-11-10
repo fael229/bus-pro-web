@@ -21,6 +21,7 @@ import AdminTrajets from './pages/admin/Trajets'
 import AdminCompagnies from './pages/admin/Compagnies'
 import AdminReservations from './pages/admin/AdminReservations'
 import AdminUsers from './pages/admin/Users'
+import AdminDestinations from './pages/admin/Destinations'
 import CompagnieDashboard from './pages/compagnie/Dashboard'
 import CompagnieTrajets from './pages/compagnie/Trajets'
 import CompagnieReservations from './pages/compagnie/Reservations'
@@ -114,6 +115,11 @@ function App() {
         <Route path="admin/users" element={
           <AdminRoute>
             <AdminUsers />
+          </AdminRoute>
+        } />
+        <Route path="admin/destinations" element={
+          <AdminRoute>
+            <AdminDestinations />
           </AdminRoute>
         } />
         

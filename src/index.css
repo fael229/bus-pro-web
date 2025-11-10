@@ -8,6 +8,23 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Base responsive : 14px sur mobile, 16px sur desktop */
+  font-size: 14px;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -16,15 +33,15 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-2 sm:py-2.5 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
   }
   
   .btn-secondary {
-    @apply bg-secondary hover:bg-secondary-dark text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-200;
+    @apply bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 sm:py-2.5 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition-colors duration-200;
   }
   
   .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200;
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2 sm:py-2.5 px-4 sm:px-6 text-sm sm:text-base rounded-lg transition-all duration-200;
   }
   
   .input-field {

@@ -173,10 +173,10 @@ export default function Home() {
       <section className="bg-gradient-to-br from-primary to-blue-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
               Bus Bénin
             </h1>
-            <p className="text-xl text-blue-100">
+            <p className="text-base sm:text-lg md:text-xl text-blue-100">
               Trouvez et réservez facilement vos trajets en bus à travers le Bénin
             </p>
           </div>
@@ -187,7 +187,7 @@ export default function Home() {
               <div className="p-2 bg-primary-light rounded-lg">
                 <Search className="h-6 w-6 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 Rechercher un trajet
               </h2>
             </div>
@@ -246,7 +246,7 @@ export default function Home() {
           <div className="p-2 bg-secondary-light rounded-lg">
             <TrendingUp className="h-6 w-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Destinations populaires
           </h2>
         </div>
@@ -280,7 +280,7 @@ export default function Home() {
                     setArrivee(dest.nom)
                   }
                 }}
-                className={`px-6 py-3 rounded-full font-semibold whitespace-nowrap transition-all ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-full font-semibold whitespace-nowrap transition-all ${
                   depart === dest.nom || arrivee === dest.nom
                     ? 'bg-primary text-white'
                     : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -313,7 +313,7 @@ export default function Home() {
             <div className="p-2 bg-warning-light rounded-lg">
               <Star className="h-6 w-6 text-warning fill-warning" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Trajets populaires
             </h2>
           </div>
@@ -345,7 +345,7 @@ export default function Home() {
           <div className="p-2 bg-secondary-light rounded-lg">
             <Award className="h-6 w-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Compagnies recommandées
           </h2>
         </div>
@@ -373,7 +373,7 @@ export default function Home() {
               <button
                 key={compagnie.id}
                 onClick={() => navigate(`/trajets?compagnie=${compagnie.nom}`)}
-                className="card hover:shadow-lg transition-shadow text-center flex-shrink-0 w-40"
+                className="card hover:shadow-lg transition-shadow text-center flex-shrink-0 w-36 sm:w-40"
               >
                 <div className="w-16 h-16 mx-auto mb-3 bg-primary-light rounded-xl flex items-center justify-center overflow-hidden">
                   {compagnie.logo_url ? (
@@ -386,7 +386,7 @@ export default function Home() {
                     <Building2 className="h-8 w-8 text-primary" />
                   )}
                 </div>
-                <h3 className="font-bold text-gray-900 dark:text-white mb-2 truncate">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 truncate">
                   {compagnie.nom}
                 </h3>
                 {compagnie.note && (
@@ -419,7 +419,7 @@ export default function Home() {
             <div className="p-2 bg-success-light rounded-lg">
               <Tag className="h-6 w-6 text-success" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Offres spéciales
             </h2>
           </div>
@@ -450,7 +450,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-2xl font-bold text-success">
+                    <span className="text-xl sm:text-2xl font-bold text-success">
                       {offre.prix}
                     </span>
                     <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">

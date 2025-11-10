@@ -39,7 +39,7 @@ export default function TrajetCard({ trajet, isFavorite, onFavoriteToggle }) {
     <div className="card hover:shadow-xl transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-2">
             {trajet.depart} → {trajet.arrivee}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -75,7 +75,7 @@ export default function TrajetCard({ trajet, isFavorite, onFavoriteToggle }) {
             </button>
           )}
           <div className="text-right">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-xl sm:text-2xl font-bold text-primary">
               {trajet.prix}
             </span>
             <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">

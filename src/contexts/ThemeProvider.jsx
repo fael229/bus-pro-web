@@ -11,7 +11,8 @@ export function ThemeProvider({ children }) {
     if (saved) {
       return saved === 'dark'
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Thème clair par défaut (au lieu de suivre les préférences système)
+    return false
   })
 
   useEffect(() => {

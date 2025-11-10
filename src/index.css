@@ -38,4 +38,19 @@ body {
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
+  
+  /* Masquer la scrollbar tout en permettant le scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE et Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari et Opera */
+  }
+  
+  /* Améliorer le scroll tactile sur mobile */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
 }

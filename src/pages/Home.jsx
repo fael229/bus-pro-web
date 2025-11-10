@@ -251,10 +251,10 @@ export default function Home() {
           </h2>
         </div>
         <div className="relative group">
-          {/* Flèche gauche */}
+          {/* Flèche gauche - cachée sur mobile */}
           <button
             onClick={() => scrollDestinations('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
             aria-label="Défiler à gauche"
           >
             <ChevronLeft className="h-6 w-6 text-gray-700 dark:text-gray-300" />
@@ -263,7 +263,12 @@ export default function Home() {
           {/* Container des destinations */}
           <div
             id="destinations-container"
-            className="flex overflow-x-hidden gap-3 pb-4 scroll-smooth"
+            className="flex overflow-x-auto gap-3 pb-4 scroll-smooth scrollbar-hide touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
           >
             {destinations.map((dest) => (
               <button
@@ -290,10 +295,10 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Flèche droite */}
+          {/* Flèche droite - cachée sur mobile */}
           <button
             onClick={() => scrollDestinations('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
             aria-label="Défiler à droite"
           >
             <ChevronRight className="h-6 w-6 text-gray-700 dark:text-gray-300" />
@@ -345,10 +350,10 @@ export default function Home() {
           </h2>
         </div>
         <div className="relative group">
-          {/* Flèche gauche */}
+          {/* Flèche gauche - cachée sur mobile */}
           <button
             onClick={() => scrollCompanies('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
             aria-label="Défiler à gauche"
           >
             <ChevronLeft className="h-6 w-6 text-gray-700 dark:text-gray-300" />
@@ -357,7 +362,12 @@ export default function Home() {
           {/* Container des compagnies */}
           <div
             id="companies-container"
-            className="flex overflow-x-hidden gap-4 pb-4 scroll-smooth"
+            className="flex overflow-x-auto gap-4 pb-4 scroll-smooth scrollbar-hide touch-pan-x"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
           >
             {compagnies.map((compagnie) => (
               <button
@@ -391,10 +401,10 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Flèche droite */}
+          {/* Flèche droite - cachée sur mobile */}
           <button
             onClick={() => scrollCompanies('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100"
             aria-label="Défiler à droite"
           >
             <ChevronRight className="h-6 w-6 text-gray-700 dark:text-gray-300" />

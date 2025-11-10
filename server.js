@@ -18,15 +18,32 @@ console.log('Dist path:', distPath);
 console.log('Dist exists:', existsSync(distPath));
 console.log('Index.html exists:', existsSync(indexPath));
 
-// Servir les fichiers statiques
-app.use(express.static(distPath));
+// Logger les requêtes
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Servir les fichiers statiques avec headers corrects
+app.use(express.static(distPath, {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true,
+  index: false // Ne pas servir index.html automatiquement
+}));
 
 // Fallback pour toutes les routes (SPA)
 app.get('*', (req, res) => {
+  console.log(`Serving index.html for: ${req.url}`);
   if (existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send('Index.html not found. Please run build first.');
+    res.status(500).send(`
+      <h1>Error: Build files not found</h1>
+      <p>Current directory: ${__dirname}</p>
+      <p>Looking for: ${indexPath}</p>
+      <p>Exists: ${existsSync(indexPath)}</p>
+    `);
   }
 });
 

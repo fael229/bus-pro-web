@@ -1,24 +1,12 @@
 services:
   - type: web
     name: bus-benin-web
-    runtime: static
+    runtime: node
     plan: free
     buildCommand: npm ci && npm run build
-    staticPublishPath: ./dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: public, max-age=0, must-revalidate
-    routes:
-      - type: rewrite
-        source: /(.*).js
-        destination: /$1.js
-      - type: rewrite
-        source: /(.*).css
-        destination: /$1.css
-      - type: rewrite
-        source: /assets/*
-        destination: /assets/$1
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: NODE_ENV
+        value: production

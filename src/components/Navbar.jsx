@@ -45,7 +45,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/logo.svg" 
+              src="/logo.png" 
               alt="Bus Bénin Logo" 
               className="h-12 w-12 rounded-xl shadow-md hover:scale-105 transition-transform duration-200"
             />

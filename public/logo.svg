@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A9FE8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1ED9A6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="200" height="200" rx="45" fill="url(#bgGradient)"/>
+  
+  <!-- Bus body -->
+  <g transform="translate(100, 100)">
+    <!-- Main bus body -->
+    <rect x="-50" y="-40" width="100" height="65" rx="8" fill="white" stroke="white" stroke-width="2"/>
+    
+    <!-- Bus windows -->
+    <rect x="-45" y="-35" width="90" height="25" rx="6" fill="url(#bgGradient)" opacity="0.8"/>
+    
+    <!-- Bus windshield/top -->
+    <path d="M -40 -40 Q -40 -48, -30 -50 L 30 -50 Q 40 -48, 40 -40 Z" fill="white"/>
+    
+    <!-- Side mirrors -->
+    <rect x="-58" y="-15" width="8" height="15" rx="3" fill="white"/>
+    <rect x="50" y="-15" width="8" height="15" rx="3" fill="white"/>
+    
+    <!-- Wheels -->
+    <circle cx="-30" cy="25" r="10" fill="white"/>
+    <circle cx="-30" cy="25" r="5" fill="url(#bgGradient)"/>
+    <circle cx="30" cy="25" r="10" fill="white"/>
+    <circle cx="30" cy="25" r="5" fill="url(#bgGradient)"/>
+    
+    <!-- Front bumper -->
+    <rect x="-45" y="25" width="90" height="8" rx="4" fill="white"/>
+    
+    <!-- Location pin on bus -->
+    <g transform="translate(0, -5)">
+      <path d="M 0 -25 C -8 -25, -15 -18, -15 -10 C -15 0, 0 12, 0 12 C 0 12, 15 0, 15 -10 C 15 -18, 8 -25, 0 -25 Z" 
+            fill="white" opacity="0.95"/>
+      <circle cx="0" cy="-10" r="5" fill="url(#bgGradient)"/>
+    </g>
+    
+    <!-- Route line under pin -->
+    <path d="M 0 -8 Q -15 0, -25 10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+</svg>

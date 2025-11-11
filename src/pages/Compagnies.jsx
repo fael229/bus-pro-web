@@ -92,7 +92,7 @@ export default function Compagnies() {
                   <img
                     src={compagnie.logo_url}
                     alt={compagnie.nom}
-                    className="h-20 w-auto object-contain"
+                    className="w-auto object-cover"
                   />
                 ) : (
                   <Building2 className="h-16 w-16 text-gray-400" />

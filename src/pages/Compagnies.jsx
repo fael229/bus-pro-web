@@ -87,15 +87,17 @@ export default function Compagnies() {
               className="card hover:shadow-xl transition-shadow"
             >
               {/* Logo */}
-              <div className="flex items-center justify-center h-32 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
+              <div className="h-32 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4 overflow-hidden">
                 {compagnie.logo_url ? (
                   <img
                     src={compagnie.logo_url}
                     alt={compagnie.nom}
-                    className="w-auto object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
-                  <Building2 className="h-16 w-16 text-gray-400" />
+                  <div className="flex items-center justify-center h-full">
+                    <Building2 className="h-16 w-16 text-gray-400" />
+                  </div>
                 )}
               </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Building2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Building2, Search, Filter, X, Calendar, TrendingUp } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 
 export default function AdminCompagnies() {
@@ -7,6 +7,14 @@ export default function AdminCompagnies() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCompagnie, setEditingCompagnie] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  
+  const [filters, setFilters] = useState({
+    dateStart: '',
+    dateEnd: '',
+    sortBy: 'created_asc', // created_asc, created_desc, name_asc, name_desc
+  })
   
   const [formData, setFormData] = useState({
     nom: '',
@@ -24,7 +32,7 @@ export default function AdminCompagnies() {
     const { data, error } = await supabase
       .from('compagnies')
       .select('*')
-      .order('nom')
+      .order('created_at', { ascending: true })
     if (!error) setCompagnies(data || [])
     setLoading(false)
   }
@@ -84,6 +92,66 @@ export default function AdminCompagnies() {
     setShowForm(false)
   }
 
+  const resetFilters = () => {
+    setFilters({
+      dateStart: '',
+      dateEnd: '',
+      sortBy: 'created_asc',
+    })
+  }
+
+  const countActiveFilters = () => {
+    let count = 0
+    if (filters.dateStart || filters.dateEnd) count++
+    if (filters.sortBy !== 'created_asc') count++
+    return count
+  }
+
+  const applyFiltersAndSort = (companiesList) => {
+    let filtered = [...companiesList]
+
+    // Recherche textuelle
+    if (searchTerm) {
+      filtered = filtered.filter(c =>
+        c.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.adresse?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.telephone?.includes(searchTerm)
+      )
+    }
+
+    // Filtre par plage de dates
+    if (filters.dateStart) {
+      const startDate = new Date(filters.dateStart)
+      filtered = filtered.filter(c => new Date(c.created_at) >= startDate)
+    }
+    if (filters.dateEnd) {
+      const endDate = new Date(filters.dateEnd)
+      endDate.setHours(23, 59, 59, 999) // Inclure toute la journée de fin
+      filtered = filtered.filter(c => new Date(c.created_at) <= endDate)
+    }
+
+    // Tri
+    switch (filters.sortBy) {
+      case 'created_desc':
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        break
+      case 'name_asc':
+        filtered.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+        break
+      case 'name_desc':
+        filtered.sort((a, b) => b.nom.localeCompare(a.nom, 'fr'))
+        break
+      case 'created_asc':
+      default:
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        break
+    }
+
+    return filtered
+  }
+
+  const filteredCompagnies = applyFiltersAndSort(compagnies)
+
   return (
     <div className="page-container">
       <div className="flex justify-between items-center mb-8">
@@ -102,6 +170,113 @@ export default function AdminCompagnies() {
           <Plus className="h-5 w-5" />
           <span>Nouvelle compagnie</span>
         </button>
+      </div>
+
+      {/* Barre de recherche et filtres */}
+      <div className="card mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          {/* Recherche */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Rechercher une compagnie..."
+              className="input-field pl-10 w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+          </div>
+          
+          {/* Bouton filtres */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`btn-secondary flex items-center space-x-2 relative ${
+              countActiveFilters() > 0 ? 'bg-primary-light text-primary border-primary' : ''
+            }`}
+          >
+            <Filter className="h-5 w-5" />
+            <span>Filtres</span>
+            {countActiveFilters() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {countActiveFilters()}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Panneau de filtres */}
+        {showFilters && (
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Filtres avancés</h3>
+              <button
+                onClick={resetFilters}
+                className="text-sm text-primary hover:text-primary-dark font-medium flex items-center space-x-1"
+              >
+                <X className="h-4 w-4" />
+                <span>Réinitialiser</span>
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* Filtre date de début */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <Calendar className="h-4 w-4 mr-2 text-primary" />
+                  Créée après le
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateStart}
+                  onChange={(e) => setFilters({ ...filters, dateStart: e.target.value })}
+                  className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                />
+              </div>
+
+              {/* Filtre date de fin */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <Calendar className="h-4 w-4 mr-2 text-primary" />
+                  Créée avant le
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateEnd}
+                  onChange={(e) => setFilters({ ...filters, dateEnd: e.target.value })}
+                  className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                />
+              </div>
+
+              {/* Tri */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                  <TrendingUp className="h-4 w-4 mr-2 text-primary" />
+                  Trier par
+                </label>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+                  className="input-field dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                >
+                  <option value="created_asc">Plus anciennes</option>
+                  <option value="created_desc">Plus récentes</option>
+                  <option value="name_asc">Nom A-Z</option>
+                  <option value="name_desc">Nom Z-A</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Résultats */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-semibold text-primary">{filteredCompagnies.length}</span> résultat{filteredCompagnies.length > 1 ? 's' : ''} trouvé{filteredCompagnies.length > 1 ? 's' : ''}
+                {countActiveFilters() > 0 && (
+                  <span> avec {countActiveFilters()} filtre{countActiveFilters() > 1 ? 's' : ''} actif{countActiveFilters() > 1 ? 's' : ''}</span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Formulaire */}
@@ -182,7 +357,7 @@ export default function AdminCompagnies() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {compagnies.map((compagnie) => (
+          {filteredCompagnies.map((compagnie) => (
             <div key={compagnie.id} className="card">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">

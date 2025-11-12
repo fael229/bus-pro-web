@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, MapPin, TrendingUp, Star, Award, Tag, Building2, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, MapPin, TrendingUp, Star, Award, Tag, Building2, ArrowRight, ChevronLeft, ChevronRight, Filter, X, Sliders } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import TrajetCard from '../components/TrajetCard'
 import { useSession } from '../contexts/SessionProvider'
@@ -18,6 +18,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [scrollPosition, setScrollPosition] = useState(0)
   const [companiesScrollPosition, setCompaniesScrollPosition] = useState(0)
+  
+  // États des filtres
+  const [showFilters, setShowFilters] = useState(false)
+  const [prixMin, setPrixMin] = useState(0)
+  const [prixMax, setPrixMax] = useState(100000)
+  const [noteMin, setNoteMin] = useState(0)
+  const [compagnieSelectionnee, setCompagnieSelectionnee] = useState('')
 
   useEffect(() => {
     loadData()
@@ -167,6 +174,30 @@ export default function Home() {
     setCompaniesScrollPosition(newPosition)
   }
 
+  // Fonctions de filtrage
+  const filterTrajets = (trajets) => {
+    return trajets.filter(trajet => {
+      const respectePrix = trajet.prix >= prixMin && trajet.prix <= prixMax
+      const respecteNote = !trajet.note || trajet.note >= noteMin
+      const respecteCompagnie = !compagnieSelectionnee || trajet.compagnie === compagnieSelectionnee
+      return respectePrix && respecteNote && respecteCompagnie
+    })
+  }
+
+  const resetFilters = () => {
+    setPrixMin(0)
+    setPrixMax(100000)
+    setNoteMin(0)
+    setCompagnieSelectionnee('')
+  }
+
+  // Données filtrées
+  const trajetsPopulairesFiltered = filterTrajets(trajetsPopulaires)
+  const offresSpecialesFiltered = filterTrajets(offresSpeciales)
+
+  // Obtenir la liste unique des compagnies pour le filtre
+  const compagniesListe = [...new Set([...trajetsPopulaires, ...offresSpeciales].map(t => t.compagnie).filter(Boolean))]
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
@@ -306,6 +337,115 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section Filtres */}
+      <section className="page-container">
+        <div className="card bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 mb-6">
+          <div 
+            className="flex items-center justify-between cursor-pointer"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary-light rounded-lg">
+                <Filter className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Filtres avancés
+              </h2>
+            </div>
+            <div className="flex items-center space-x-2">
+              {(prixMin > 0 || prixMax < 100000 || noteMin > 0 || compagnieSelectionnee) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    resetFilters()
+                  }}
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition-colors"
+                >
+                  Réinitialiser
+                </button>
+              )}
+              <ChevronRight className={`h-5 w-5 text-gray-500 transition-transform ${showFilters ? 'rotate-90' : ''}`} />
+            </div>
+          </div>
+
+          {showFilters && (
+            <div className="mt-6 grid md:grid-cols-3 gap-6">
+              {/* Filtre Prix */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Fourchette de prix (FCFA)
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="number"
+                      value={prixMin}
+                      onChange={(e) => setPrixMin(Number(e.target.value))}
+                      placeholder="Min"
+                      className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    />
+                    <span className="text-gray-500 text-sm">à</span>
+                    <input
+                      type="number"
+                      value={prixMax}
+                      onChange={(e) => setPrixMax(Number(e.target.value))}
+                      placeholder="Max"
+                      className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Sliders className="h-4 w-4" />
+                    <span>{prixMin.toLocaleString()} - {prixMax.toLocaleString()} FCFA</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filtre Note */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Note minimale
+                </label>
+                <div className="flex items-center space-x-2">
+                  {[0, 1, 2, 3, 4, 5].map((note) => (
+                    <button
+                      key={note}
+                      onClick={() => setNoteMin(note)}
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                        noteMin === note
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
+                      }`}
+                    >
+                      <Star className={`h-4 w-4 ${noteMin === note ? 'fill-current' : ''}`} />
+                      <span>{note}+</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filtre Compagnie */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Compagnie
+                </label>
+                <select
+                  value={compagnieSelectionnee}
+                  onChange={(e) => setCompagnieSelectionnee(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                >
+                  <option value="">Toutes les compagnies</option>
+                  {compagniesListe.map((compagnie) => (
+                    <option key={compagnie} value={compagnie}>
+                      {compagnie}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Trajets populaires */}
       <section className="page-container">
         <div className="flex items-center justify-between mb-6">
@@ -318,16 +458,16 @@ export default function Home() {
             </h2>
           </div>
           <span className="px-4 py-1.5 bg-primary-light text-primary rounded-full text-sm font-semibold">
-            Top {trajetsPopulaires.length}
+            {trajetsPopulairesFiltered.length} résultat{trajetsPopulairesFiltered.length !== 1 ? 's' : ''}
           </span>
         </div>
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           </div>
-        ) : (
+        ) : trajetsPopulairesFiltered.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trajetsPopulaires.map((trajet) => (
+            {trajetsPopulairesFiltered.map((trajet) => (
               <TrajetCard
                 key={trajet.id}
                 trajet={trajet}
@@ -335,6 +475,18 @@ export default function Home() {
                 onFavoriteToggle={loadFavorites}
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="flex flex-col items-center">
+              <Search className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                Aucun trajet trouvé
+              </h3>
+              <p className="text-gray-500 dark:text-gray-500 text-center max-w-md">
+                Aucun trajet ne correspond à vos critères de filtrage. Essayez de modifier les filtres.
+              </p>
+            </div>
           </div>
         )}
       </section>
@@ -427,47 +579,61 @@ export default function Home() {
             Prix bas
           </span>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {offresSpeciales.map((offre) => (
-            <div key={offre.id} className="relative">
-              <div className="absolute -top-2 -right-2 z-10 bg-success text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                PROMO
-              </div>
-              <div className="card border-2 border-success hover:shadow-xl transition-shadow">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                    {offre.depart} → {offre.arrivee}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    {offre.compagnie}
-                  </p>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-warning fill-warning" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {offre.note || 'N/A'}
-                    </span>
+        {offresSpecialesFiltered.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {offresSpecialesFiltered.map((offre) => (
+              <div key={offre.id} className="relative">
+                <div className="absolute -top-2 -right-2 z-10 bg-success text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  PROMO
+                </div>
+                <div className="card border-2 border-success hover:shadow-xl transition-shadow">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                      {offre.depart} → {offre.arrivee}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {offre.compagnie}
+                    </p>
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-4 w-4 text-warning fill-warning" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {offre.note || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xl sm:text-2xl font-bold text-success">
+                        {offre.prix}
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
+                        FCFA
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/trajet/${offre.id}`)}
+                      className="btn-primary"
+                    >
+                      Voir
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xl sm:text-2xl font-bold text-success">
-                      {offre.prix}
-                    </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-                      FCFA
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/trajet/${offre.id}`)}
-                    className="btn-primary"
-                  >
-                    Voir
-                  </button>
-                </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="flex flex-col items-center">
+              <Tag className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                Aucune offre spéciale trouvée
+              </h3>
+              <p className="text-gray-500 dark:text-gray-500 text-center max-w-md">
+                Aucune offre spéciale ne correspond à vos critères. Essayez de modifier les filtres.
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
     </div>
   )

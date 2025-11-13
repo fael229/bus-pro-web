@@ -26,6 +26,7 @@ export default function Reservations() {
           id,
           nb_places,
           horaire,
+          date_voyage,
           montant_total,
           nom_passager,
           telephone_passager,
@@ -234,12 +235,19 @@ export default function Reservations() {
                     <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                       <Calendar className="h-4 w-4" />
                       <span>
-                        {new Date(reservation.created_at).toLocaleDateString('fr-FR')}
+                        {reservation.date_voyage 
+                          ? new Date(reservation.date_voyage).toLocaleDateString('fr-FR', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'Date non définie'
+                        }
                       </span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                       <Clock className="h-4 w-4" />
-                      <span>{reservation.horaire}</span>
+                      <span>{reservation.horaire || 'Non défini'}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                       <Users className="h-4 w-4" />

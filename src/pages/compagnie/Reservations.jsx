@@ -287,7 +287,7 @@ export default function CompagnieReservations() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                     <div>
                       <p className="text-gray-600 dark:text-gray-400">Trajet</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
@@ -295,9 +295,22 @@ export default function CompagnieReservations() {
                       </p>
                     </div>
                     <div>
+                      <p className="text-gray-600 dark:text-gray-400">Date voyage</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {reservation.date_voyage 
+                          ? new Date(reservation.date_voyage).toLocaleDateString('fr-FR', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'Non définie'
+                        }
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-gray-600 dark:text-gray-400">Horaire</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {reservation.horaire}
+                        {reservation.horaire || 'Non défini'}
                       </p>
                     </div>
                     <div>

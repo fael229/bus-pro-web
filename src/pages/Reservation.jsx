@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Users, Clock, CreditCard, User, Phone, Mail, Smartphone, CheckCircle, Loader, Shield, ExternalLink } from 'lucide-react'
+import { Users, Clock, CreditCard, User, Phone, Mail, Smartphone, CheckCircle, Loader, Shield, ExternalLink, Calendar } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import { useSession } from '../contexts/SessionProvider'
 import { createTransaction, openPaymentUrl, formatAmount, checkTransactionStatus } from '../utils/fedapay'
@@ -19,6 +19,7 @@ export default function Reservation() {
   const [formData, setFormData] = useState({
     nb_places: 1,
     horaire: '',
+    date_voyage: '',
     nom_passager: '',
     telephone_passager: '',
     email_passager: session?.user?.email || '',
@@ -72,6 +73,7 @@ export default function Reservation() {
           trajet_id: trajet.id,
           nb_places: formData.nb_places,
           horaire: formData.horaire,
+          date_voyage: formData.date_voyage,
           nom_passager: formData.nom_passager,
           telephone_passager: formData.telephone_passager,
           email_passager: formData.email_passager,
@@ -272,6 +274,26 @@ export default function Reservation() {
                     className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Date de voyage
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    value={formData.date_voyage}
+                    onChange={(e) => setFormData({ ...formData, date_voyage: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]} // Empêcher les dates passées
+                    required
+                    className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  />
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Sélectionnez votre date de voyage (minimum aujourd'hui)
+                </p>
               </div>
 
               <div>
@@ -514,6 +536,27 @@ export default function Reservation() {
                     {formData.nb_places}
                   </span>
                 </div>
+                {formData.date_voyage && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Date de voyage</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {new Date(formData.date_voyage).toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+                {formData.horaire && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Horaire</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {formData.horaire}
+                    </span>
+                  </div>
+                )}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                   <div className="flex justify-between">
                     <span className="font-bold text-gray-900 dark:text-white">Total</span>

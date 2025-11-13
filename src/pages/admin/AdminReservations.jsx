@@ -301,9 +301,19 @@ export default function AdminReservations() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Horaire</p>
+                      <p className="text-gray-600 dark:text-gray-400">Date voyage</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {reservation.horaire}
+                        {reservation.date_voyage 
+                          ? new Date(reservation.date_voyage).toLocaleDateString('fr-FR', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'Non définie'
+                        }
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {reservation.horaire || 'Horaire non défini'}
                       </p>
                     </div>
                     <div>

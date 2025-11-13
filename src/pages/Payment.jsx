@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { CreditCard, Smartphone, CheckCircle, XCircle, Loader, Shield, ExternalLink } from 'lucide-react'
+import { CreditCard, Smartphone, CheckCircle, XCircle, Loader, Shield, ExternalLink, Download } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import { useSession } from '../contexts/SessionProvider'
 import { createTransaction, openPaymentUrl, formatAmount, checkTransactionStatus } from '../utils/fedapay'
+import { generateAdaptiveReceiptPDF } from '../utils/pdfGenerator'
 
 export default function Payment() {
   const { id } = useParams() // reservation ID
@@ -94,7 +95,19 @@ export default function Payment() {
         if (statusCheck.success && statusCheck.status === 'approved') {
           await updateReservationStatus('approved', result.transactionId)
           setPaymentStatus('success')
-          setTimeout(() => navigate('/reservations'), 2000)
+          
+          // Générer et télécharger le PDF après paiement réussi
+          setTimeout(async () => {
+            try {
+              const pdfResult = await generateAdaptiveReceiptPDF(reservation)
+              if (pdfResult.success) {
+                console.log('✅ PDF généré:', pdfResult.fileName)
+              }
+            } catch (error) {
+              console.error('❌ Erreur génération PDF:', error)
+            }
+            navigate('/reservations')
+          }, 2000)
         } else {
           setPaymentStatus('error')
           alert('⏳ Paiement en attente ou échoué. Vérifiez votre transaction.')
@@ -128,7 +141,16 @@ export default function Payment() {
       
       setPaymentStatus('success')
       
-      setTimeout(() => {
+      // Générer PDF pour le mode démo aussi
+      setTimeout(async () => {
+        try {
+          const pdfResult = await generateAdaptiveReceiptPDF(reservation)
+          if (pdfResult.success) {
+            console.log('✅ PDF généré (mode démo):', pdfResult.fileName)
+          }
+        } catch (error) {
+          console.error('❌ Erreur génération PDF (mode démo):', error)
+        }
         navigate('/reservations')
       }, 2000)
     } catch (error) {
@@ -185,14 +207,24 @@ export default function Payment() {
             {/* Statut de paiement */}
             {paymentStatus === 'success' && (
               <div className="card bg-success-light border-2 border-success">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-8 w-8 text-success" />
-                  <div>
-                    <h3 className="text-lg font-bold text-success">Paiement réussi !</h3>
-                    <p className="text-sm text-gray-700">
-                      Votre réservation a été confirmée. Vous allez être redirigé...
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="h-8 w-8 text-success" />
+                    <div>
+                      <h3 className="text-lg font-bold text-success">Paiement réussi !</h3>
+                      <p className="text-sm text-gray-700">
+                        Votre réservation a été confirmée. Le reçu PDF a été téléchargé automatiquement.
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => generateAdaptiveReceiptPDF(reservation)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success-dark transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">Télécharger le reçu</span>
+                    <span className="sm:hidden">PDF</span>
+                  </button>
                 </div>
               </div>
             )}

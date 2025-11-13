@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, MapPin, Clock, CreditCard, CheckCircle, XCircle, AlertCircle, RefreshCw, Users } from 'lucide-react'
+import { Calendar, MapPin, Clock, CreditCard, CheckCircle, XCircle, AlertCircle, RefreshCw, Users, Download } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import { useSession } from '../contexts/SessionProvider'
 import { checkTransactionStatus } from '../utils/fedapay'
+import { generateAdaptiveReceiptPDF } from '../utils/pdfGenerator'
 
 export default function Reservations() {
   const { session } = useSession()
@@ -105,27 +106,36 @@ export default function Reservations() {
   }
 
   const annulerReservation = async (reservationId) => {
-    if (!confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) {
-      return
-    }
-
     try {
       const { error } = await supabase
         .from('reservations')
-        .update({
-          statut: 'annulee',
-          statut_paiement: 'canceled',
-        })
+        .update({ statut: 'annulee' })
         .eq('id', reservationId)
-        .eq('statut', 'en_attente') // Seulement si en attente
+        .eq('user_id', session.user.id)
 
       if (error) throw error
-
-      alert('✅ Réservation annulée')
-      await loadReservations()
+      
+      // Recharger les réservations
+      loadReservations()
+      
+      alert('Réservation annulée avec succès')
     } catch (error) {
-      console.error('❌ Erreur annulation:', error)
-      alert(`Erreur: ${error.message}`)
+      console.error('Error cancelling reservation:', error)
+      alert('Erreur lors de l\'annulation de la réservation')
+    }
+  }
+
+  const downloadReceipt = async (reservation) => {
+    try {
+      const result = await generateAdaptiveReceiptPDF(reservation)
+      if (result.success) {
+        console.log('✅ PDF téléchargé:', result.fileName)
+      } else {
+        alert('❌ Erreur lors de la génération du PDF')
+      }
+    } catch (error) {
+      console.error('Erreur téléchargement PDF:', error)
+      alert('❌ Erreur lors du téléchargement du reçu')
     }
   }
 
@@ -264,6 +274,17 @@ export default function Reservations() {
                         <CreditCard className="h-3 w-3" />
                         <span>Payer {reservation.montant_total} FCFA</span>
                       </Link>
+                    )}
+                    
+                    {/* Bouton télécharger reçu si payé */}
+                    {reservation.statut_paiement === 'approved' && (
+                      <button
+                        onClick={() => downloadReceipt(reservation)}
+                        className="flex items-center space-x-1 px-3 py-2 rounded-lg bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 text-xs font-semibold transition-colors"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>Télécharger reçu</span>
+                      </button>
                     )}
                     
                     {/* Bouton annuler si en attente */}
